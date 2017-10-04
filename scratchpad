@@ -1,0 +1,73 @@
+--disable-icu
+
+BOOST_REGEX_HAS_MS_STACK_GUARD
+
+Tells Boost.Regex that Microsoft style __try - __except blocks are supported, and can be used to safely trap stack overflow.
+
+The following options apply only if BOOST_REGEX_NON_RECURSIVE is set.
+
+BOOST_REGEX_BLOCKSIZE
+
+In non-recursive mode, Boost.Regex uses largish blocks of memory to act as a stack for the state machine, the larger the block size then the fewer allocations that will take place. This defaults to 4096 bytes, which is large enough to match the vast majority of regular expressions without further allocations, however, you can choose smaller or larger values depending upon your platforms characteristics.
+
+BOOST_REGEX_MAX_BLOCKS
+
+Tells Boost.Regex how many blocks of size BOOST_REGEX_BLOCKSIZE it is permitted to use. If this value is exceeded then Boost.Regex will stop trying to find a match and throw a std::runtime_error. Defaults to 1024, don't forget to tweak this value if you alter BOOST_REGEX_BLOCKSIZE by much.
+
+BOOST_REGEX_MAX_CACHE_BLOCKS
+
+Tells Boost.Regex how many memory blocks to store in it's internal cache - memory blocks are taken from this cache rather than by calling ::operator new. Generally speaking this can be an order of magnitude faster than calling ::opertator new each time a memory block is required, but has the downside that Boost.Regex can end up caching a large chunk of memory (by default up to 16 blocks each of BOOST_REGEX_BLOCKSIZE size). If memory is tight then try defining this to 0 (disables all caching), or if that is too slow, then a value of 1 or 2, may be sufficient. On the other hand, on large multi-processor, multi-threaded systems, you may find that a higher value is in order.
+
+BOOST_REGEX_RECURSIVE
+
+Tells Boost.Regex to use a stack-recursive matching algorithm. This is generally the fastest option (although there is very little in it), but can cause stack overflow in extreme cases, on Win32 this can be handled safely, but this is not the case on other platforms.
+
+BOOST_REGEX_NON_RECURSIVE
+
+Tells Boost.Regex to use a non-stack recursive matching algorithm, this can be slightly slower than the alternative, but is always safe no matter how pathological the regular expression. This is the default on non-Win32 platforms.
+
+git clone --recursive https://github.com/boostorg/boost.git
+
+./bootstrap.sh && ./b2 headers
+
+build.sh boost_regex_fuzzer.cc $SRC/
+
+$CXX $CXXFLAGS -I . ../boost_regex_fuzzer.cc libs/regex/src/*.cpp $LIB_FUZZING_ENGINE -o boost_regex_fuzzer
+
+# copyright John Maddock 2003
+# Distributed under the Boost Software License, Version 1.0. 
+# (See accompanying file LICENSE_1_0.txt or copy at 
+# http://www.boost.org/LICENSE_1_0.txt.
+
+import testing ;
+
+lib Fuzzer : : <search>. ;
+
+run narrow.cpp [ glob ../../src/*.cpp ] Fuzzer
+         :  # additional args
+         -dict=dictionary.txt -workers=3 corpus -runs=5000
+         :  # test-files
+         :  # requirements
+            <toolset>clang <cxxflags>-fsanitize-coverage=trace-pc-guard 
+            <cxxflags>-fsanitize=address <cxxflags>-fsanitize=undefined 
+            <cxxflags>-fno-sanitize-recover=undefined <cxxflags>-fno-optimize-sibling-calls 
+            <cxxflags>-fno-omit-frame-pointer
+            <include>../../../..
+            <linkflags>-fsanitize=address <linkflags>-fsanitize=undefined 
+            debug
+;
+
+run wide.cpp [ glob ../../src/*.cpp ] Fuzzer
+         :  # additional args
+         -dict=dictionary.txt -workers=3 corpus -runs=5000
+         :  # test-files
+         :  # requirements
+            <toolset>clang <cxxflags>-fsanitize-coverage=trace-pc-guard 
+            <cxxflags>-fsanitize=address <cxxflags>-fsanitize=undefined 
+            <cxxflags>-fno-sanitize-recover=undefined <cxxflags>-fno-optimize-sibling-calls 
+            <cxxflags>-fno-omit-frame-pointer
+            <include>../../../..
+            <linkflags>-fsanitize=address <linkflags>-fsanitize=undefined 
+            debug
+;
+
