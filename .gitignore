@@ -3,8 +3,6 @@ GTAGS
 GRTAGS
 
 build
-afl
-lib
 
 fuzzers/generic/GPATH
 fuzzers/generic/GRTAGS
