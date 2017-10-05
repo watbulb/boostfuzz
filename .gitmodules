@@ -4,3 +4,7 @@
 [submodule "lib/boost/regex"]
 	path = lib/boost/regex
 	url = https://github.com/boostorg/regex
+[submodule "lib/boost/boost-root"]
+	path = lib/boost/boost-root
+	url = https://github.com/boostorg/boost.git
+	shallow = true

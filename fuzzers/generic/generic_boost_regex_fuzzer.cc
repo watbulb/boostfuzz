@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <boost/regex.hpp>
 
-#include <iostream>
 
 using namespace std;
 using namespace boost;
@@ -18,11 +17,6 @@ static volatile char suppress_warning1 = AFL_DEFER_FORKSVR[0];
 static volatile char AFL_PERSISTENT[] = "##SIG_AFL_PERSISTENT##";
 extern "C" int __afl_persistent_loop(unsigned int);
 static volatile char suppress_warning2 = AFL_PERSISTENT[0];
-
-// Input buffer.
-static const size_t kMaxAflInputSize = 1 << 20;
-static uint8_t AflInputBuf[kMaxAflInputSize];
-
 
 static const size_t AFL_INBUF_MAX = 1024*1024
 static uint8_t afl_input_buffer[AFL_INBUF_MAX];

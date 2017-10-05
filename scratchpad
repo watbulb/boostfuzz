@@ -1,3 +1,5 @@
+git clone --depth 1 https://github.com/boostorg/boost.git lib/boost/boost-root
+
 --disable-icu
 
 BOOST_REGEX_HAS_MS_STACK_GUARD

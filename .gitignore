@@ -1,4 +1,11 @@
 GPATH
 GTAGS
 GRTAGS
-.vscode/*
+
+build
+afl
+lib
+
+fuzzers/generic/GPATH
+fuzzers/generic/GRTAGS
+fuzzers/generic/GTAGS
