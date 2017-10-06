@@ -1,10 +1,12 @@
 [submodule "afl"]
 	path = afl
 	url = https://github.com/mcarpenter/afl
-[submodule "lib/boost-root"]
-	path = lib/boost-root
-	url = https://github.com/boostorg/boost
-	shallow = true
+[submodule "afl/afl-utils"]
+	path = afl/afl-utils
+	url = https://github.com/rc0r/afl-utils
 [submodule "lib/regex"]
 	path = lib/regex
 	url = https://github.com/boostorg/regex
+[submodule "lib/boost"]
+	path = lib/boost
+	url = https://github.com/boostorg/boost
