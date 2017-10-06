@@ -57,8 +57,8 @@ pushd lib/boost > /dev/null
 
 popd > /dev/null
 
-pushd libs/regex > /dev/null
-    git checkout master > /dev/null
+pushd lib/regex > /dev/null
+    git checkout develop > /dev/null
 popd > /dev/null
 
 

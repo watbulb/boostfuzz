@@ -31,7 +31,7 @@
                 "/usr/local/include",
                 "/usr/lib/clang/5.0.0/include",
                 "/usr/include",
-                "${workspaceRoot}/lib/boost/libs/regex/include",
+                "${workspaceRoot}/lib/regex/include",
                 "${workspaceRoot}/lib/boost/libs/config/include",
                 "${workspaceRoot}/lib/boost/libs/predef/include",
                 "${workspaceRoot}/lib/boost/libs/assert/include",
