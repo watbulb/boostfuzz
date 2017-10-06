@@ -4,7 +4,7 @@ set -e
 
 git submodule update --init
 
-pushd lib/boost/boost-root > /dev/null
+pushd lib/boost > /dev/null
     git submodule update --init tools/build
     git submodule update --init libs/config
     git submodule update --init libs/core
@@ -50,7 +50,18 @@ pushd lib/boost/boost-root > /dev/null
     git submodule update --init libs/atomic
     git submodule update --init libs/rational
     git submodule update --init libs/algorithm
-    git submodule update --init libs/regex
+
+    ./bootstrap.sh --with-icu
+
+    ./b2 headers
+
 popd > /dev/null
-#- bootstrap
-#- b2 headers
+
+pushd libs/regex > /dev/null
+    git checkout master > /dev/null
+popd > /dev/null
+
+
+
+    
+

@@ -1,0 +1,13 @@
+TODO:
+
+Add afl-utils submodule
+
+Port afl_driver to smaller subset afl_driver
+
+Finish build script and linkages 
+
+Document and spice up
+
+Release
+
+

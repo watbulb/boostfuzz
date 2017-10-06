@@ -1,12 +1,14 @@
-
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
 #include <boost/regex.hpp>
+#include <assert.h>
 
-
-using namespace std;
-using namespace boost;
+#include <fstream>
+#include <iostream>
+#include <ostream>
+#include <vector>
 
 // Notify AFL about deferred forkserver.
 static volatile char AFL_DEFER_FORKSVR[] = "##SIG_AFL_DEFER_FORKSRV##";
@@ -18,98 +20,77 @@ static volatile char AFL_PERSISTENT[] = "##SIG_AFL_PERSISTENT##";
 extern "C" int __afl_persistent_loop(unsigned int);
 static volatile char suppress_warning2 = AFL_PERSISTENT[0];
 
-static const size_t AFL_INBUF_MAX = 1024*1024
-static uint8_t afl_input_buffer[AFL_INBUF_MAX];
+static const size_t kAFL_INBUF_MAX = 1024*1024;
+static int afl_input_buffer[kAFL_INBUF_MAX];
 
 
-
-extern "C" int AFLTestOneInput(int argc, char **argv) 
+extern "C" int AFLTestOneInput(const u_int8_t *data, size_t size) 
 {
     if(size < 2)
         return 0;
     try{
-        string text((char*)(data), size);
-        regex expression(str);
-        match_result<const_iterator> what;
-        regex_match(text, what, expression,
-            match_default | match_partial);
+        std::string text((char*)(data), size);
+        boost::regex expression(text);
+        boost::match_results<std::string::const_iterator> what;
+        boost::regex_match(text, what, expression,
+            boost::match_default | boost::match_partial);
 
         //regex_search(text, what, e, match_default | match_partial);
     }
-    catch(const exception&){}
+    catch(const std::exception&){}
     return 0;
 }
 
-// Execute any files provided as parameters.
-int ExecuteFilesOnyByOne(int argc, char **argv) {
-    for (int i = 1; i < argc; i++) {
-      std::ifstream in(argv[i]);
-      in.seekg(0, in.end);
-      size_t length = in.tellg();
-      in.seekg (0, in.beg);
-      std::cout << "Reading " << length << " bytes from " << argv[i] << std::endl;
-      // Allocate exactly length bytes so that we reliably catch buffer overflows.
-      std::vector<char> bytes(length);
-      in.read(bytes.data(), bytes.size());
-      assert(in);
-      LLVMFuzzerTestOneInput(reinterpret_cast<const uint8_t *>(bytes.data()),
-                             bytes.size());
-      std::cout << "Execution successfull" << std::endl;
-    }
-    return 0;
-  }
-
 int main(int argc, char **argv)
 {
-    if(size < 2)
+    if (argc > 1) {
+        std::streampos begin, end;        
+        for (int i = 1; i < argc; i++) {
+            std::ifstream file(argv[i]);
+
+            begin = file.tellg();
+            file.seekg (0, std::ios_base::end);
+            
+            end = file.tellg();
+            file.seekg (0, file.beg);
+
+            long length = (end-begin);
+
+            std::cout << "Reading " << length << " bytes from " << argv[i] << std::endl;
+
+            // Allocate exactly length bytes so that we reliably catch buffer overflows.
+            std::vector<char> bytes(length);
+            file.read(bytes.data(), bytes.size());
+            assert(file);
+            AFLTestOneInput(reinterpret_cast<const uint8_t *>(bytes.data()),
+                                   bytes.size());
+            std::cout << "Execution successfull" << std::endl;
+        }
         return 0;
+    }
 
     __afl_manual_init();
-
-    if (argc < 1)
-        return cerr << "No testcase specified!" << endl
-    else if (argc == 1)
-        return ExecuteTestCase(argc, argv)
-    else if (argc > 1)
-        for (size_t i = 1; i < argc; i++)
-        {
-            ExecuteTestCase(argc[i], argv)
-        }
-
+    
 	int counter = 0;
     while (__afl_persistent_loop(1000))
     {
-        ssize_t afl_input_buffer = read(0, afl_input_buffer, AFL_INBUF_MAX);
+        ssize_t inbuf = read(0, afl_input_buffer, kAFL_INBUF_MAX);
 
-		if (afl_input_buffer < 1)
-            return cerr << "Received no data from afl-fuzz!" << endl
-        else
+        if (afl_input_buffer < (int*)1)
         {
+            std::cout << "Received no data from afl-fuzz!" << endl;
+            return -1;
+        } else {
 			// Copy AflInputBuf into a separate buffer to let asan find buffer
 			// overflows. Don't use unique_ptr/etc to avoid extra dependencies.
-			uint8_t *copy = new uint8_t[n_read];
-			memcpy(copy, AflInputBuf, n_read);
+			uint8_t *copy = new uint8_t[inbuf];
+			memcpy(copy, afl_input_buffer, inbuf);
 
-			struct timeval unit_start_time;
-			CHECK_ERROR(gettimeofday(&unit_start_time, NULL) == 0,
-						"Calling gettimeofday failed");
+			AFLTestOneInput(copy, inbuf);
 
-			num_runs++;
-			LLVMFuzzerTestOneInput(copy, n_read);
-
-			struct timeval unit_stop_time;
-			CHECK_ERROR(gettimeofday(&unit_stop_time, NULL) == 0,
-						"Calling gettimeofday failed");
-
-			// Update slowest_unit_time_secs if we see a new max.
-			unit_time_secs = unit_stop_time.tv_sec - unit_start_time.tv_sec;
-			if (slowest_unit_time_secs < unit_time_secs)
-				slowest_unit_time_secs = unit_time_secs;
-
-			delete[] copy;
-
-			counter = counter + 1;
+            delete[] copy;
+            counter++;    
 		}
 	}
-	fprintf(stderr, "%s: successfully executed %d input(s)\n", argv[0], num_runs);
+	std::cout argv[0] <<  ": successfully executed " << counter << " input(s)" << endl;
 }
