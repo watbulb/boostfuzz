@@ -1,8 +1,8 @@
-[submodule "afl"]
-	path = afl
+[submodule "fuzzers/afl"]
+	path = fuzzers/afl
 	url = https://github.com/mcarpenter/afl
-[submodule "afl/afl-utils"]
-	path = afl/afl-utils
+[submodule "fuzzers/afl-utils"]
+	path = fuzzers/afl-utils
 	url = https://github.com/rc0r/afl-utils
 [submodule "lib/regex"]
 	path = lib/regex
@@ -10,3 +10,4 @@
 [submodule "lib/boost"]
 	path = lib/boost
 	url = https://github.com/boostorg/boost
+
