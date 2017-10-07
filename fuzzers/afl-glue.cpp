@@ -43,7 +43,13 @@ static volatile char suppress_warning2 = AFL_PERSISTENT[0];
 static const size_t kAFL_INBUF_MAX = 1 << 20;
 static int afl_input_buffer[kAFL_INBUF_MAX];
 
+static time_t unit_time_secs;
 static time_t slowest_unit_time_secs = 0;
+
+static int good_runs = 0;
+static int bad_runs = 0;
+static int num_runs = 0;
+static int result = 0;
 
 
 int main(int argc, char **argv)
@@ -51,7 +57,6 @@ int main(int argc, char **argv)
 	if (argc > 1) {
 		std::streampos begin, end;
 
-		uint8_t result;
 		long length;
 
 		for (int i = 1; i < argc; i++) {
@@ -91,15 +96,12 @@ int main(int argc, char **argv)
 
 	__afl_manual_init();
 
-	std::cout << "[afl-glue] afl deferred forkserver started." << std::endl;
+	std::cout << "[afl-glue] afl deferred forkserver started" << std::endl;
 	std::cout << "[afl-glue] you may also input your testcase directly into this buffer" << std::endl;
+	std::cout << "[afl-glue] or you may even supply a list of files to run:" << std::endl << std::endl;
+	std::cout << "\t>>> " << argv[0]  << " ./testcase1 ../testcase2" << std::endl;
+
 	std::cout << ">>> ";
-	
-	time_t unit_time_secs;
-	int good_runs = 0;
-	int num_runs = 0;	
-	int bad_runs = 0;
-	int result = 0;
 
 	while (__afl_persistent_loop(1000))
 	{

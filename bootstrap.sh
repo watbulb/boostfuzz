@@ -60,8 +60,3 @@ popd > /dev/null
 pushd lib/regex > /dev/null
     git checkout develop > /dev/null
 popd > /dev/null
-
-
-
-    
-
