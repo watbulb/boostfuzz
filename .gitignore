@@ -2,8 +2,10 @@ GPATH
 GTAGS
 GRTAGS
 
-build
+*.o
+*regex_fuzzer
 
-fuzzers/generic/GPATH
-fuzzers/generic/GRTAGS
-fuzzers/generic/GTAGS
+OUT
+IN
+build
+.vscode/*
