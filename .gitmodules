@@ -4,9 +4,6 @@
 [submodule "fuzzers/afl-utils"]
 	path = fuzzers/afl-utils
 	url = https://github.com/rc0r/afl-utils
-[submodule "lib/regex"]
-	path = lib/regex
-	url = https://github.com/boostorg/regex
 [submodule "lib/boost"]
 	path = lib/boost
 	url = https://github.com/boostorg/boost

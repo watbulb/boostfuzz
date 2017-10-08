@@ -1,60 +1,71 @@
 #!/usr/bin/env bash
+####################################################################
+# American Fuzzy Lop (AFL) harness builder for boost (regex) fuzzers
+# Dayton Pidhirney <dapids> <deepsixsec@protonmail.com> 2017
+####################################################################
 
 set -e
 
 AFL_HOME="${PWD}/fuzzers/afl"
 AFL_LLVM_MODE="${AFL_HOME}/llvm_mode/afl-llvm-rt.o.c"
-AFL_UTILS_HOME="${PWD}/fuzzers/afl-utils"
 AFL_COMPILER="${AFL_HOME}/afl-clang-fast++"
 AFL_GLUE="${PWD}/fuzzers/afl-glue.cpp"
 
+FUZZER_DIR="${PWD}/fuzzers/regex"
+
 BOOST_LIB_DIR="${PWD}/lib/boost"
-BOOST_REGEX_SRCDIR="${PWD}/lib/regex/src"
+BOOST_REGEX_SRCDIR="${PWD}/lib/boost/libs/regex/src"
 BOOST_REGEX_BUILD_DIR="${PWD}/fuzzers/regex/regex-build"
 
-##### REGEX #####
+CC=clang
+CXX=clang++
 
-echo "[boostfuzz] Instrumenting boost (regex) library with llvm pass"
+##### AFL #####
 
-pushd $BOOST_REGEX_BUILD_DIR
-    $AFL_COMPILER -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR \
-    $BOOST_REGEX_SRCDIR/*.cpp -c
-popd
+if [[ ! -f $AFL_HOME/afl-clang-fast++ ]]; then
+    pushd $AFL_HOME
+        make
+        pushd llvm_mode
+            make
+        popd
+    popd
+fi
 
-echo "[boostfuzz] Building boost (regex) fuzzers"
+##### FUZZERS #####
 
-pushd fuzzers/regex/generic
-    clang -m32 -O2 -I $BOOST_LIB_DIR generic_boost_regex_fuzzer.cc -c
+function build_regex_fuzzer() {
+    pushd $FUZZER_DIR/$1
+        $CC -m32 -O2 -I $BOOST_LIB_DIR $1_boost_regex_fuzzer.cc -c
 
-    clang -O2 -m32 $AFL_LLVM_MODE -c -w 
+        $CC -O2 -m32 $AFL_LLVM_MODE -c -w 
 
-    clang++ -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR $AFL_GLUE *.o \
-    $BOOST_REGEX_BUILD_DIR/*.o -o generic_boost_regex_fuzzer
+        $CXX -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR $AFL_GLUE *.o \
+            $BOOST_REGEX_BUILD_DIR/*.o -o $1_boost_regex_fuzzer
 
-    rm *.o
-popd
+        rm ./*.o
+    popd
+}
 
-pushd fuzzers/regex/narrow
-    clang -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR narrow_boost_regex_fuzzer.cc -c
+##### BOOST #####
 
-    clang -O2 -m32 $AFL_LLVM_MODE -c -w 
+if [[ ! -d $BOOST_REGEX_BUILD_DIR ]]; then
+    mkdir "$BOOST_REGEX_BUILD_DIR"
+elif [[ -z $(ls -p $BOOST_REGEX_BUILD_DIR) ]]; then
+    echo "[boostfuzz] Instrumenting boost (regex) library with llvm pass"
 
-    clang++ -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR $AFL_GLUE *.o \
-    $BOOST_REGEX_BUILD_DIR/*.o -o narrow_boost_regex_fuzzer
+    pushd "$BOOST_REGEX_BUILD_DIR"
+        $AFL_COMPILER -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR \
+            $BOOST_REGEX_SRCDIR/*.cpp -c
+    popd
+else
+    echo "[boostfuzz] boost (regex) library already instrumented, skipping"
+fi
 
-    rm *.o
-popd
+echo "[boostfuzz] building boost (regex) fuzzers"
 
-pushd fuzzers/regex/wide
-    clang -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR wide_boost_regex_fuzzer.cc -c
-
-    clang -O2 -m32 $AFL_LLVM_MODE -c -w 
-
-    clang++ -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR $AFL_GLUE *.o \
-    $BOOST_REGEX_BUILD_DIR/*.o -o wide_boost_regex_fuzzer
-
-    rm *.o
-popd
+build_regex_fuzzer generic
+build_regex_fuzzer wide
+build_regex_fuzzer narrow
 
 echo "[boostfuzz] boost (regex) fuzzer building complete!"
-echo "[boostfuzz] the fuzzers are located in fuzzers/regex/{generic,narrow,wide}"
+echo "[boostfuzz] the fuzzers are located in ${PWD}/fuzzers/regex/{generic,narrow,wide}"

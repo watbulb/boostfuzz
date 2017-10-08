@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -50,7 +49,6 @@ static int good_runs = 0;
 static int bad_runs = 0;
 static int num_runs = 0;
 static int result = 0;
-
 
 int main(int argc, char **argv)
 {
