@@ -22,7 +22,7 @@ CXX=clang++
 
 ##### AFL #####
 
-if [[ ! -f $AFL_HOME/afl-clang-fast++ ]]; then
+if [[ ! -f $AFL_COMPILER ]]; then
     pushd $AFL_HOME
         make
         pushd llvm_mode
