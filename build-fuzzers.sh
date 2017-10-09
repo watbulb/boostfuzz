@@ -15,7 +15,7 @@ FUZZER_DIR="${PWD}/fuzzers/regex"
 
 BOOST_LIB_DIR="${PWD}/lib/boost"
 BOOST_REGEX_SRCDIR="${PWD}/lib/boost/libs/regex/src"
-BOOST_REGEX_BUILD_DIR="${PWD}/fuzzers/regex/regex-build"
+BOOST_REGEX_BUILD_DIR="${PWD}/fuzzers/regex/build"
 
 CC=clang
 CXX=clang++
@@ -35,12 +35,14 @@ fi
 
 function build_regex_fuzzer() {
     pushd $FUZZER_DIR/$1
-        $CC -m32 -O2 -I $BOOST_LIB_DIR $1_boost_regex_fuzzer.cc -c
+        $CC -m32 -O2 -fsanitize-coverage=trace-pc-guard -fsanitize=address -I $BOOST_LIB_DIR \
+        $1_boost_regex_fuzzer.cc -c
 
         $CC -O2 -m32 $AFL_LLVM_MODE -c -w 
 
-        $CXX -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR $AFL_GLUE *.o \
-            $BOOST_REGEX_BUILD_DIR/*.o -o $1_boost_regex_fuzzer
+        $CXX -m32 -O2 -fsanitize=address \
+        -I $BOOST_LIB_DIR $AFL_GLUE *.o \
+        $BOOST_REGEX_BUILD_DIR/*.o -o $1_boost_regex_fuzzer
 
         rm ./*.o
     popd
@@ -54,8 +56,9 @@ elif [[ -z $(ls -p $BOOST_REGEX_BUILD_DIR) ]]; then
     echo "[boostfuzz] Instrumenting boost (regex) library with llvm pass"
 
     pushd "$BOOST_REGEX_BUILD_DIR"
-        $AFL_COMPILER -m32 -O2 -fsanitize=address -I $BOOST_LIB_DIR \
-            $BOOST_REGEX_SRCDIR/*.cpp -c
+        $AFL_COMPILER -m32 -O2 -fsanitize-coverage=trace-pc-guard \
+        -fno-optimize-sibling-calls -fno-omit-frame-pointer -fsanitize=address -I $BOOST_LIB_DIR \
+        $BOOST_REGEX_SRCDIR/*.cpp -c
     popd
 else
     echo "[boostfuzz] boost (regex) library already instrumented, skipping"

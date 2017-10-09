@@ -1,0 +1,70 @@
+From c9c9c7754cb9530778abcc09d951f886852e44b6 Mon Sep 17 00:00:00 2001
+From: Will Dietz <w@wdtz.org>
+Date: Wed, 9 Jan 2013 15:28:34 -0600
+Subject: [PATCH] [ubsan] Give entry methods default (not hidden) visibility.
+
+Fixes using ubsan on shared libraries in linux.
+---
+ lib/ubsan/ubsan_handlers.h     | 8 ++++----
+ lib/ubsan/ubsan_handlers_cxx.h | 4 ++--
+ lib/ubsan/ubsan_value.h        | 1 +
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/lib/ubsan/ubsan_handlers.h b/lib/ubsan/ubsan_handlers.h
+index b50f57f..bb8a946 100644
+--- a/lib/ubsan/ubsan_handlers.h
++++ b/lib/ubsan/ubsan_handlers.h
+@@ -25,8 +25,8 @@ struct TypeMismatchData {
+ };
+ 
+ #define RECOVERABLE(checkname, ...) \
+-  extern "C" void __ubsan_handle_ ## checkname( __VA_ARGS__ ); \
+-  extern "C" void __ubsan_handle_ ## checkname ## _abort( __VA_ARGS__ );
++  extern "C" EXPORT void __ubsan_handle_ ## checkname( __VA_ARGS__ ); \
++  extern "C" EXPORT void __ubsan_handle_ ## checkname ## _abort( __VA_ARGS__ );
+ 
+ /// \brief Handle a runtime type check failure, caused by either a misaligned
+ /// pointer, a null pointer, or a pointer to insufficient storage for the
+@@ -70,9 +70,9 @@ struct UnreachableData {
+ };
+ 
+ /// \brief Handle a __builtin_unreachable which is reached.
+-extern "C" void __ubsan_handle_builtin_unreachable(UnreachableData *Data);
++extern "C" EXPORT void __ubsan_handle_builtin_unreachable(UnreachableData *Data);
+ /// \brief Handle reaching the end of a value-returning function.
+-extern "C" void __ubsan_handle_missing_return(UnreachableData *Data);
++extern "C" EXPORT void __ubsan_handle_missing_return(UnreachableData *Data);
+ 
+ struct VLABoundData {
+   SourceLocation Loc;
+diff --git a/lib/ubsan/ubsan_handlers_cxx.h b/lib/ubsan/ubsan_handlers_cxx.h
+index 0fbcafb..a8cfd14 100644
+--- a/lib/ubsan/ubsan_handlers_cxx.h
++++ b/lib/ubsan/ubsan_handlers_cxx.h
+@@ -28,9 +28,9 @@ struct DynamicTypeCacheMissData {
+ /// \brief Handle a runtime type check failure, caused by an incorrect vptr.
+ /// When this handler is called, all we know is that the type was not in the
+ /// cache; this does not necessarily imply the existence of a bug.
+-extern "C" void __ubsan_handle_dynamic_type_cache_miss(
++extern "C" EXPORT void __ubsan_handle_dynamic_type_cache_miss(
+   DynamicTypeCacheMissData *Data, ValueHandle Pointer, ValueHandle Hash);
+-extern "C" void __ubsan_handle_dynamic_type_cache_miss_abort(
++extern "C" EXPORT void __ubsan_handle_dynamic_type_cache_miss_abort(
+   DynamicTypeCacheMissData *Data, ValueHandle Pointer, ValueHandle Hash);
+ 
+ }
+diff --git a/lib/ubsan/ubsan_value.h b/lib/ubsan/ubsan_value.h
+index 267388b..be5607b 100644
+--- a/lib/ubsan/ubsan_value.h
++++ b/lib/ubsan/ubsan_value.h
+@@ -31,6 +31,7 @@ typedef unsigned __int128 u128;
+ #define HAVE_INT128_T 0
+ #endif
+ 
++#define EXPORT __attribute__((visibility("default")))
+ 
+ namespace __ubsan {
+ 
+-- 
+1.8.1
+

@@ -62,10 +62,9 @@ pushd lib/boost > /dev/null
     #build headers only
     ./b2 headers
 
-popd > /dev/null
-
-#ensure on develop branch because fuzzing fixes sometimes
-#don't get merged into master for many months, change as needed.
-pushd lib/regex > /dev/null
-    git checkout develop > /dev/null
+    #ensure on develop branch because fuzzing fixes sometimes
+    #don't get merged into master for many months, change as needed.
+    pushd libs/regex > /dev/null
+        git checkout develop > /dev/null
+    popd > /dev/null
 popd > /dev/null
