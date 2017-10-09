@@ -52,7 +52,9 @@ function build_regex_fuzzer() {
 
 if [[ ! -d $BOOST_REGEX_BUILD_DIR ]]; then
     mkdir "$BOOST_REGEX_BUILD_DIR"
-elif [[ -z $(ls -p $BOOST_REGEX_BUILD_DIR) ]]; then
+fi
+
+if [[ -z $(ls -p $BOOST_REGEX_BUILD_DIR) ]]; then
     echo "[boostfuzz] Instrumenting boost (regex) library with llvm pass"
 
     pushd "$BOOST_REGEX_BUILD_DIR"
